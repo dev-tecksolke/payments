@@ -78,7 +78,7 @@ class PaymentController extends Controller {
 			'amount' => $amount,
 			'accountReference' => $accountReference,
 			'account' => config('payment.c2b.account'),
-			'callback' => URL::signedRoute('stk.callback'),
+			'callback' => URL::signedRoute('payment.stk.callback'),
 		];
 
 		// Create a transaction
@@ -142,70 +142,37 @@ class PaymentController extends Controller {
 	}
 
 	/**
-	 * Perform the b2c request. Allow users to withdraw from the application.
-	 *
-	 * @param int $msisdn
+	 * Imitate a new B2C Transaction. Allows us to fund the users via mobile wallet.
+	 * @param int $phoneNumber
 	 * @param int $amount
-	 *
-	 * @param string $id
-	 * @param float $fee
-	 * @return string
+	 * @param string $referenceCode
+	 * @return mixed|string
 	 * @throws \Exception
 	 */
-//	public static function b2c(int $msisdn, int $amount, string $id, float $fee) {
-//		//generate reference_code
-//		$reference_code = (new SystemController())->generateCode();
-//
-//		// Validate the msisdn
-//		$msisdn = (new Mpesa())->validateMSISDN($msisdn);
-//
-//		// Set the request options
-//		$options = [
-//			'msisdn' => $msisdn,
-//			'amount' => $amount,
-//			'callback' => (string)route('withdraw.callback'),
-//			'account' => (string)config('mpesa.account'),
-//			'referenceCode' => $reference_code,
-//		];
-//
-//		// Make the request
-//		try {
-//			$response = (new Mpesa())->makeRequest('business/v1/b2c/payment-request',
-//				(new Mpesa())->setRequestOptions($options));
-//			if ($response->success) {
-//				$check = MpesaWithDraw::query()->where('reference_code', $reference_code)->first();
-//				if (!$check) {
-//					//create a mpesa withdraw statements here
-//					MpesaWithDraw::query()->create([
-//						'user_id' => $id,
-//						'phone_number' => $msisdn,
-//						'reference_code' => $reference_code,
-//						'amount' => $amount,
-//						'fee' => $fee,
-//					]);
-//				}
-//
-//				return (object)[
-//					'success' => true,
-//					'message' => 'Withdraw was successfully',
-//				];
-//			}
-//			return (object)[
-//				'success' => false,
-//				'message' => 'Withdraw Failed',
-//			];
-//		} catch (\Exception $e) {
-//			Log::error($e->getMessage());
-//			throw new \Exception($e->getMessage());
-//		} catch (GuzzleException $e) {
-//			Log::error($e->getMessage());
-//			throw new \Exception($e->getMessage());
-//		}
-//	}
+	public function initiateB2CTransaction(int $phoneNumber, int $amount, string $referenceCode) {
+		// Validate the phone number
+		try {
+			$msisdn = $this->validatePhoneNumber($phoneNumber);
+		} catch (\Exception $exception) {
+			throw new \Exception($exception->getMessage());
+		}
+
+		try {
+			return $this->makeRequest('business/v1/b2c/payment-request', [
+				'msisdn' => $msisdn,
+				'amount' => $amount,
+				'callback' => URL::signedRoute('payment.b2c.callback'),
+				'account' => config('payment.b2c.account'),
+				'referenceCode' => $referenceCode,
+			]);
+		} catch (GuzzleException $exception) {
+			throw new \Exception($exception->getMessage());
+		}
+	}
 
 	/**
-	 * Store the token in the cache for 58 minutes.
-	 *
+	 * Store the token in the cache. This helps us to make consecutive requests faster
+	 * without the need to generate a fresh access token.
 	 * @param object $response
 	 * @return mixed
 	 */
