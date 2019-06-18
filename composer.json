@@ -1,7 +1,7 @@
 {
   "name": "tecksolke/payment",
   "description": "A library for direct mpesa payments integration.",
-  "type": "project",
+  "type": "library",
   "license": "MIT",
   "authors": [
 	{
