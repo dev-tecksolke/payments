@@ -14,7 +14,9 @@ return [
 	'consumer_key' => env('MPESA_CONSUMER_KEY'),
 	'consumer_secret' => env('MPESA_CONSUMER_SECRET'),
 	'c2b' => [
-		'account' => env('MPESA_ACCOUNT'),
-		'type' => 'c2b',
+		'account' => env('MPESA_C2B_ACCOUNT'),
+	],
+	'b2c' => [
+		'account' => env('MPESA_B2C_ACCOUNT'),
 	],
 ];
