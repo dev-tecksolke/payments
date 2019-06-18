@@ -34,7 +34,7 @@ class Payment {
 	 * @return array
 	 * @throws \Exception
 	 */
-	public function b2c(int $phoneNumber, int $amount, string $referenceCode) {
+	public static function b2c(int $phoneNumber, int $amount, string $referenceCode) {
 		try {
 			return (array)(new PaymentController())->initiateB2CTransaction($phoneNumber, $amount, $referenceCode);
 		} catch (\Exception $exception) {
