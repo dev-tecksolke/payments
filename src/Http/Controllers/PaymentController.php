@@ -157,14 +157,16 @@ class PaymentController extends Controller {
 			throw new \Exception($exception->getMessage());
 		}
 
+		// Set the request options
+		$options = [
+			'msisdn' => $msisdn,
+			'amount' => $amount,
+			'callback' => URL::signedRoute('payment.b2c.callback'),
+			'account' => config('payment.b2c.account'),
+			'referenceCode' => $referenceCode,
+		];
 		try {
-			return $this->makeRequest('business/v1/b2c/payment-request', [
-				'msisdn' => $msisdn,
-				'amount' => $amount,
-				'callback' => URL::signedRoute('payment.b2c.callback'),
-				'account' => config('payment.b2c.account'),
-				'referenceCode' => $referenceCode,
-			]);
+			return $this->makeRequest('business/v1/b2c/payment-request', $this->setRequestOptions($options));
 		} catch (GuzzleException $exception) {
 			throw new \Exception($exception->getMessage());
 		}
