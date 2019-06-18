@@ -20,23 +20,13 @@ class CallbackController extends Controller {
 	 * @throws \Exception
 	 */
 	private function handleSTKCallbackData(Request $request) {
-//		SAMPLE DATA
-//		{
-//			"success": true,
-//           "data": {
-//			    "amount": 1,
-//              "transactionID": "NDI8BSYBVI",
-//               "phoneNumber": 254708666389,
-//              "referenceCode": "TB411B9672DF"
-//           }
-//      }
 		// Extract the request payload and parse it to json
 		$payload = json_decode($request->getContent());
 
 		// Get the reference code use
 		$referenceCode = $payload->data->referenceCode;
 
-		$lipaNaMpesa = LipaNaMpesaRequest::query()->where('reference_code', $referenceCode)->first();
+		$lipaNaMpesa = LipaNaMpesaRequest::query()->where('reference_code', $referenceCode);
 
 		// Check if the transaction exists using the reference code
 		if (!$lipaNaMpesa->first()) {
@@ -50,7 +40,7 @@ class CallbackController extends Controller {
 		// Check if the transaction was successful
 		if (!$payload->success) {
 			// Update the transaction, set it as unsuccessful
-			$lipaNaMpesa->update([
+			$lipaNaMpesa->first()->update([
 				'is_successful' => false,
 				'callback' => ($payload),
 			]);
@@ -74,6 +64,16 @@ class CallbackController extends Controller {
 			];
 		}
 
+		$lipaNaMpesa = LipaNaMpesaRequest::query()->where('reference_code', $referenceCode)
+			->where('is_successful', false)->first();
+
+		if (!$lipaNaMpesa) {
+			return [
+				'success' => false,
+				'message' => 'Transaction already processed.',
+			];
+		}
+
 		// Update the transaction, set it as successful
 		$lipaNaMpesa->update([
 			'is_successful' => true,
@@ -88,8 +88,19 @@ class CallbackController extends Controller {
 		];
 	}
 
-
+	/**
+	 * Return the callback data to the user after processing
+	 * @param Request $request
+	 * @return array
+	 * @throws \Exception
+	 */
 	public function stkCallback(Request $request) {
-		info("STK Callback", $request->all());
+		// Extract the callback data
+		try {
+			return $this->handleSTKCallbackData($request);
+		} catch (\Exception $exception) {
+			throw new \Exception($exception->getMessage());
+		}
+
 	}
 }
