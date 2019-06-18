@@ -101,6 +101,9 @@ class CallbackController extends Controller {
 		} catch (\Exception $exception) {
 			throw new \Exception($exception->getMessage());
 		}
+	}
 
+	public function b2cCallback(Request $request) {
+		info("B2C Callback", $request->all());
 	}
 }
