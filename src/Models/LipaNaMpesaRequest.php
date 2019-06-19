@@ -7,16 +7,10 @@ use App\User;
 use Illuminate\Database\Eloquent\Model;
 
 class LipaNaMpesaRequest extends Model {
-	/**
-	 * Indicates if the IDs are auto-incrementing.
-	 *
-	 * @var bool
-	 */
-	public $incrementing = false;
-
-	//set attributes
+	// Attributes to be casted to their native types
 	protected $casts = [
 		'callback' => 'array',
+		'response' => 'array',
 		'is_successful' => 'boolean',
 	];
 	/**
