@@ -99,17 +99,17 @@ class PaymentController extends Controller {
 	 * Create an stk transaction
 	 * @param int $phoneNumber
 	 * @param int $amount
-	 * @param string $accountReference
+	 * @param string $referenceCode
 	 * @param object $response
 	 */
 	private function createSTKPushTransaction(
-		int $phoneNumber, int $amount, string $accountReference, object $response
+		int $phoneNumber, int $amount, string $referenceCode, object $response
 	) {
 		// Create a new query
 		$lipaNaMpesa = LipaNaMpesaRequest::query();
 
 		// Check if the transaction exists
-		$existingTransaction = $lipaNaMpesa->where('reference_code', $accountReference)
+		$existingTransaction = $lipaNaMpesa->where('reference_code', $referenceCode)
 			->where('is_successful', false)
 			->first();
 
@@ -117,8 +117,8 @@ class PaymentController extends Controller {
 			$lipaNaMpesa->create([
 				'phone_number' => $phoneNumber,
 				'amount' => $amount,
-				'reference_code' => $accountReference,
-				'response' => $response,
+				'reference_code' => $referenceCode,
+				'response' => json_encode($response),
 				'user_id' => auth()->id(),
 			]);
 		}
@@ -169,10 +169,45 @@ class PaymentController extends Controller {
 			'referenceCode' => $referenceCode,
 		];
 		try {
-			return $this->makeRequest('business/v1/b2c/payment-request', $this->setRequestOptions($options));
+			$response = $this->makeRequest('business/v1/b2c/payment-request', $this->setRequestOptions($options));
+
+			// Create a transaction
+			$this->createB2CTransaction($phoneNumber, $amount, $referenceCode, $response);
+
+			return $response;
 		} catch (GuzzleException $exception) {
 			throw new \Exception($exception->getMessage());
 		}
+	}
+
+	/**
+	 * Store the data for the b2c transaction in the DB
+	 * @param int $phoneNumber
+	 * @param int $amount
+	 * @param string $referenceCode
+	 * @param object $response
+	 */
+	private function createB2CTransaction(
+		int $phoneNumber, int $amount, string $referenceCode, object $response
+	) {
+		// Create a new query
+		$b2cTransaction = B2CPaymentRequest::query();
+
+		// Check if the transaction exists
+		$existingTransaction = $b2cTransaction->where('reference_code', $referenceCode)
+			->where('is_successful', false)
+			->first();
+
+		if (!$existingTransaction) {
+			$b2cTransaction->create([
+				'phone_number' => $phoneNumber,
+				'amount' => $amount,
+				'reference_code' => $referenceCode,
+				'response' => json_encode($response),
+				'user_id' => auth()->id(),
+			]);
+		}
+		return;
 	}
 
 	/**
