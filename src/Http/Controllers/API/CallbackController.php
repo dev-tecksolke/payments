@@ -45,10 +45,7 @@ class CallbackController extends Controller {
 		// Check if the transaction was successful
 		if (!$payload->success) {
 			// Update the transaction, set it as unsuccessful
-			$transaction->first()->update([
-				'is_successful' => false,
-				'callback' => ($payload),
-			]);
+			$this->updateFailedTransaction($table, $referenceCode, $payload);
 
 			return [
 				'success' => false,
@@ -79,18 +76,49 @@ class CallbackController extends Controller {
 			];
 		}
 
-		// Update the transaction, set it as successful
-		$transaction->update([
-			'is_successful' => true,
-			'transID' => $transactionID,
-			'callback' => json_encode($payload),
-		]);
+		// Update transaction data
+		$this->updateSuccessfulTransaction($referenceCode, $transactionID, $payload, $table);
 
 		return [
 			'success' => true,
 			'data' => $payload,
 			'userID' => $userID,
 		];
+	}
+
+	/**
+	 * Update the data for a failed transaction
+	 * @param string $table
+	 * @param string $referenceCode
+	 * @param object $payload
+	 */
+	private function updateFailedTransaction(string $table, string $referenceCode, object $payload) {
+		DB::table($table)->where('reference_code', $referenceCode)
+			->where('is_successful', false)
+			->update([
+				'is_successful' => false,
+				'callback' => ($payload),
+			]);
+	}
+
+	/**
+	 * Update successful transaction transaction ID and callback data
+	 * @param string $referenceCode
+	 * @param string $transactionID
+	 * @param object $payload
+	 * @param string $table
+	 */
+	private function updateSuccessfulTransaction(
+		string $referenceCode, string $transactionID, object $payload, string $table
+	) {
+		DB::table($table)->where('reference_code', $referenceCode)
+			->where('is_successful', false)->update([
+				'is_successful' => true,
+				'transID' => $transactionID,
+				'callback' => json_encode($payload),
+			]);
+
+		return;
 	}
 
 	/**
@@ -105,7 +133,7 @@ class CallbackController extends Controller {
 			// Get the lipa na mpesa table name
 			$lipaNaMpesa = new LipaNaMpesaRequest();
 
-			return $this->handleCallbackData($request, $lipaNaMpesa->getTable());
+			dd($this->handleCallbackData($request, $lipaNaMpesa->getTable()));
 
 		} catch (\Exception $exception) {
 			throw new \Exception($exception->getMessage());
