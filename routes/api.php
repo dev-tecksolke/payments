@@ -11,8 +11,8 @@ Route::group([
 	'middleware' => 'signed',
 ], function () {
 	// STK Callback
-	Route::post('stk-callback', 'CallbackController@stkCallback')->name('payment.stk.callback');
+	Route::post('stk', 'CallbackController@stkCallback')->name('payment.stk.callback');
 	// B2C Callback
-	Route::post('stk-callback', 'CallbackController@b2cCallback')->name('payment.b2c.callback');
+	Route::post('b2c', 'CallbackController@b2cCallback')->name('payment.b2c.callback');
 
 });
