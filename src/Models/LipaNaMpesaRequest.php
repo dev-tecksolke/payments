@@ -25,7 +25,7 @@ class LipaNaMpesaRequest extends Model {
 	 * @var array
 	 */
 	protected $fillable = [
-		'id', 'amount', 'reference_code', 'transID', 'phone_number', 'user_id', 'is_successful', 'callback',
+		'amount', 'reference_code', 'transID', 'phone_number', 'user_id', 'is_successful', 'callback', 'response',
 	];
 
 	/**
