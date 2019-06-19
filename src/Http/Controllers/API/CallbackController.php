@@ -97,7 +97,7 @@ class CallbackController extends Controller {
 			->where('is_successful', false)
 			->update([
 				'is_successful' => false,
-				'callback' => ($payload),
+				'callback' => json_encode($payload),
 			]);
 	}
 
@@ -140,6 +140,12 @@ class CallbackController extends Controller {
 		}
 	}
 
+	/**
+	 * Handle the b2c callback data
+	 * @param Request $request
+	 * @return array
+	 * @throws \Exception
+	 */
 	public function b2cCallback(Request $request) {
 		info("B2C Callback", $request->all());
 		// Extract the callback data
