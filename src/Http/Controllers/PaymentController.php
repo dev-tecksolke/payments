@@ -81,12 +81,14 @@ class PaymentController extends Controller {
 			'callback' => URL::signedRoute('payment.stk.callback'),
 		];
 
-		// Create a transaction
-		$this->createSTKPushTransaction($phoneNumber, $amount, $accountReference);
-
 		// Make request to the mpesa system
 		try {
-			return $this->makeRequest('business/v1/c2b/stk/push', $this->setRequestOptions($options));
+			$response = $this->makeRequest('business/v1/c2b/stk/push', $this->setRequestOptions($options));
+
+			// Create a transaction
+			$this->createSTKPushTransaction($phoneNumber, $amount, $accountReference, $response);
+
+			return $response;
 		} catch (\Exception $exception) {
 			throw new \Exception($exception->getMessage());
 		} catch (GuzzleException $exception) {
@@ -99,9 +101,11 @@ class PaymentController extends Controller {
 	 * @param int $phoneNumber
 	 * @param int $amount
 	 * @param string $accountReference
-	 * @throws \Exception
+	 * @param object $response
 	 */
-	private function createSTKPushTransaction(int $phoneNumber, int $amount, string $accountReference) {
+	private function createSTKPushTransaction(
+		int $phoneNumber, int $amount, string $accountReference, object $response
+	) {
 		// Create a new query
 		$lipaNaMpesa = LipaNaMpesaRequest::query();
 
@@ -112,10 +116,10 @@ class PaymentController extends Controller {
 
 		if (!$existingTransaction) {
 			$lipaNaMpesa->create([
-				'id' => Uuid::uuid4()->toString(),
 				'phone_number' => $phoneNumber,
 				'amount' => $amount,
 				'reference_code' => $accountReference,
+				'response' => json_decode($response),
 				'user_id' => auth()->id(),
 			]);
 		}
