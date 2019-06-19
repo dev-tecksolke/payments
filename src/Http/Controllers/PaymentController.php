@@ -17,7 +17,6 @@ use GuzzleHttp\Exception\ServerException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
-use Ramsey\Uuid\Uuid;
 
 class PaymentController extends Controller {
 	private $cacheKey;
@@ -119,7 +118,7 @@ class PaymentController extends Controller {
 				'phone_number' => $phoneNumber,
 				'amount' => $amount,
 				'reference_code' => $accountReference,
-				'response' => json_decode($response),
+				'response' => $response,
 				'user_id' => auth()->id(),
 			]);
 		}
