@@ -15,12 +15,15 @@ class Payment {
 	 * @param int $phoneNumber
 	 * @param int $amount
 	 * @param string $referenceCode
+	 * @param string $callbackRoute
 	 * @return mixed|string
 	 * @throws \Exception
 	 */
-	public static function stkPush(int $phoneNumber, int $amount, string $referenceCode) {
+	public static function stkPush(int $phoneNumber, int $amount, string $referenceCode, string $callbackRoute) {
 		try {
-			return (array)(new PaymentController())->initiateSTKPush($phoneNumber, $amount, $referenceCode);
+			return (array)(new PaymentController())->initiateSTKPush(
+				$phoneNumber, $amount, $referenceCode, $callbackRoute
+			);
 		} catch (\Exception $exception) {
 			throw new \Exception($exception->getMessage());
 		}
