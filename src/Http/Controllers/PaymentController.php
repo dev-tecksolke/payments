@@ -122,7 +122,7 @@ class PaymentController extends Controller {
 				'phone_number' => $phoneNumber,
 				'amount' => $amount,
 				'reference_code' => $referenceCode,
-				'response' => json_encode($response),
+				'response' => ($response),
 				'user_id' => auth()->id(),
 			]);
 		}
@@ -142,6 +142,7 @@ class PaymentController extends Controller {
 
 		return $callback;
 	}
+
 	/**
 	 * Validate the msisdn. Check if it starts with 2547 and the length must be 12 digits.
 	 * @param int $phoneNumber

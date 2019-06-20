@@ -18,7 +18,7 @@ class CallbackController extends Controller {
 	/**
 	 * Handle stk push callback data
 	 * @param Request $request
-	 * @param Model $model
+	 * @param string $table
 	 * @return array
 	 */
 	private function handleCallbackData(Request $request, string $table) {
