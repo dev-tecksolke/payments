@@ -64,12 +64,16 @@ class PaymentController extends Controller {
 	 * @param int $phoneNumber
 	 * @param int $amount
 	 * @param string $accountReference
+	 * @param string $callbackRoute
 	 * @return mixed|string
 	 * @throws \Exception
 	 */
-	public function initiateSTKPush(int $phoneNumber, int $amount, string $accountReference) {
+	public function initiateSTKPush(int $phoneNumber, int $amount, string $accountReference, string $callbackRoute) {
 		// Validate the phone number
 		$phoneNumber = $this->validatePhoneNumber($phoneNumber);
+
+		// Validate the callback route
+		$callbackRoute = $this->validateCallbackRoute($callbackRoute);
 
 		// Create request options
 		$options = [
@@ -77,7 +81,7 @@ class PaymentController extends Controller {
 			'amount' => $amount,
 			'accountReference' => $accountReference,
 			'account' => config('payment.c2b.account'),
-			'callback' => URL::signedRoute('payment.stk.callback'),
+			'callback' => $callbackRoute,
 		];
 
 		// Make request to the mpesa system
@@ -125,7 +129,19 @@ class PaymentController extends Controller {
 		return;
 	}
 
+	/**
+	 * Validate the callback is a valid URL
+	 * @param string $callback
+	 * @return string
+	 */
+	private function validateCallbackRoute(string $callback) {
+		// Validate the callback. Check if its an url
+		if (!filter_var($callback, FILTER_VALIDATE_URL)) {
+			throw new \InvalidArgumentException('The callback must be a valid URL.');
+		}
 
+		return $callback;
+	}
 	/**
 	 * Validate the msisdn. Check if it starts with 2547 and the length must be 12 digits.
 	 * @param int $phoneNumber
@@ -135,10 +151,10 @@ class PaymentController extends Controller {
 	private function validatePhoneNumber(int $phoneNumber) {
 		// Verify the msisdn starts with 2547
 		if (!Str::startsWith($phoneNumber, 2547)) {
-			throw new \Exception("The phone number must start with 2547. ${phoneNumber} given.");
+			throw new \InvalidArgumentException("The phone number must start with 2547. ${phoneNumber} given.");
 		}
 		if (strlen($phoneNumber) != 12) {
-			throw new \Exception("The phone number must 12 digits.");
+			throw new \InvalidArgumentException("The phone number must 12 digits.");
 		}
 
 		return $phoneNumber;
